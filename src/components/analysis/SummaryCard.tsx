@@ -2,16 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ArrowRight, ExternalLink, Download } from "lucide-react";
-
-interface SummaryData {
-  keyInsight: string;
-  breakingPoints: string[];
-  recommendedTools: string[];
-  nextSteps: string[];
-}
+import { AnalysisSummary } from "@/types/analysis";
 
 interface SummaryCardProps {
-  data: SummaryData;
+  data: AnalysisSummary;
 }
 
 export const SummaryCard = ({ data }: SummaryCardProps) => {
@@ -30,13 +24,14 @@ export const SummaryCard = ({ data }: SummaryCardProps) => {
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* Key Insight */}
+        {/* Key Insight & Mechanism */}
         <div className="p-4 bg-psychology-success/10 border border-psychology-success/20 rounded-lg">
           <h4 className="font-semibold text-psychology-success mb-2 flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
-            Key Insight
+            Key Insight & Mechanism
           </h4>
-          <p className="text-foreground">{data.keyInsight}</p>
+          <p className="text-foreground mb-3">{data.keyInsight}</p>
+          <p className="text-sm text-muted-foreground">{data.mechanism}</p>
         </div>
 
         {/* Breaking Points */}
@@ -57,35 +52,10 @@ export const SummaryCard = ({ data }: SummaryCardProps) => {
           </div>
         </div>
 
-        {/* Recommended Tools */}
-        <div>
-          <h4 className="font-semibold text-foreground mb-3">Recommended Tools & Approaches</h4>
-          <div className="grid gap-2">
-            {data.recommendedTools.map((tool, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-card border rounded-lg shadow-soft hover:shadow-medium transition-shadow">
-                <span className="text-sm text-foreground">{tool}</span>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Next Steps */}
-        <div>
-          <h4 className="font-semibold text-foreground mb-3">Immediate Next Steps</h4>
-          <div className="space-y-3">
-            {data.nextSteps.map((step, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 bg-psychology-primary/5 border border-psychology-primary/10 rounded-lg">
-                <div className="w-6 h-6 bg-psychology-primary rounded-full flex items-center justify-center text-white text-xs font-semibold">
-                  {index + 1}
-                </div>
-                <p className="text-sm text-foreground flex-1">{step}</p>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
-              </div>
-            ))}
-          </div>
+        {/* Next Step */}
+        <div className="p-4 bg-psychology-primary/5 border border-psychology-primary/10 rounded-lg">
+          <h4 className="font-semibold text-psychology-primary mb-2">Immediate Next Step</h4>
+          <p className="text-sm text-foreground">{data.nextStep}</p>
         </div>
 
         {/* Action Buttons */}
@@ -97,17 +67,11 @@ export const SummaryCard = ({ data }: SummaryCardProps) => {
             <Download className="h-4 w-4 mr-2" />
             Download Report
           </Button>
-          <Button variant="outline">
-            Schedule Follow-up
-          </Button>
-          <Button variant="outline">
-            Share with Therapist
-          </Button>
         </div>
 
         {/* Footer */}
         <div className="flex justify-between items-center pt-4 border-t text-xs text-muted-foreground">
-          <span>Analysis completed in 3 stages</span>
+          <span>Analysis completed • {data.wordCount} words</span>
           <Badge variant="secondary">
             Ready for Action
           </Badge>

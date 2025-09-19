@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
+  placeholder?: string;
 }
 
-export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, disabled, placeholder = "Describe a situation or pattern you'd like to analyze..." }: ChatInputProps) => {
   const [message, setMessage] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -34,7 +35,7 @@ export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Describe a situation or pattern you'd like to analyze..."
+          placeholder={placeholder}
           disabled={disabled}
           className={cn(
             "min-h-[48px] max-h-32 resize-none pr-20 transition-all duration-200",

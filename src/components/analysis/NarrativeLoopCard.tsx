@@ -4,18 +4,10 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown, ArrowRight, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-interface NarrativeLoopData {
-  trigger: string;
-  reaction: string;
-  consequence: string;
-  interpretation: string;
-  emotion: string;
-  behavior: string;
-}
+import { NarrativeLoopStep } from "@/types/analysis";
 
 interface NarrativeLoopCardProps {
-  data: NarrativeLoopData;
+  data: NarrativeLoopStep;
 }
 
 export const NarrativeLoopCard = ({ data }: NarrativeLoopCardProps) => {
@@ -125,10 +117,15 @@ export const NarrativeLoopCard = ({ data }: NarrativeLoopCardProps) => {
             <AlertTriangle className="h-5 w-5 text-psychology-warning flex-shrink-0 mt-0.5" />
             <div>
               <h4 className="font-medium text-foreground mb-1">Breaking Point Identified</h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-2">
                 The strongest intervention opportunity is between steps 3-4: 
                 challenging the interpretation before emotions escalate.
               </p>
+              <div className="space-y-1">
+                {data.breakingPoints.map((point, index) => (
+                  <p key={index} className="text-xs text-psychology-warning">• {point}</p>
+                ))}
+              </div>
             </div>
           </div>
         </div>

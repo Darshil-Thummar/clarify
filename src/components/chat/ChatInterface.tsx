@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
@@ -6,29 +6,32 @@ import { WelcomeCard } from "./WelcomeCard";
 import { NarrativeLoopCard } from "../analysis/NarrativeLoopCard";
 import { SpiessMapCard } from "../analysis/SpiessMapCard";
 import { SummaryCard } from "../analysis/SummaryCard";
+import { ClarifyingQuestions } from "../analysis/ClarifyingQuestions";
+import { PrivacyControls } from "../settings/PrivacyControls";
 import { Button } from "@/components/ui/button";
-import { Trash2, Settings } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Trash2, Settings, Shield } from "lucide-react";
+import { useAnalysisFlow } from "@/hooks/useAnalysisFlow";
 
 export interface Message {
   id: string;
   type: 'user' | 'ai' | 'system';
   content: string;
   timestamp: Date;
-  analysisStage?: 'welcome' | 'narrative-loop' | 'spiess-map' | 'summary';
-  analysisData?: any;
 }
 
 export const ChatInterface = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'system',
-      content: 'Welcome to Narrative Loop Analyzer',
-      timestamp: new Date(),
-      analysisStage: 'welcome'
-    }
-  ]);
-  const [isTyping, setIsTyping] = useState(false);
+  const {
+    session,
+    isProcessing,
+    processUserInput,
+    processClarifyingAnswers,
+    skipClarifyingQuestions,
+    updateSettings,
+    deleteSession,
+    startNewAnalysis,
+  } = useAnalysisFlow();
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -37,108 +40,141 @@ export const ChatInterface = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [session.stage]);
 
   const handleSendMessage = async (content: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setIsTyping(true);
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: "I understand you'd like me to analyze that pattern. Let me process your input and extract the narrative loop...",
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiMessage]);
-      setIsTyping(false);
-
-      // Add analysis stages
-      setTimeout(() => {
-        const narrativeMessage: Message = {
-          id: (Date.now() + 2).toString(),
-          type: 'system',
-          content: 'Narrative Loop Analysis Complete',
-          timestamp: new Date(),
-          analysisStage: 'narrative-loop',
-          analysisData: {
-            trigger: "Feeling overwhelmed by deadlines",
-            reaction: "Procrastination kicks in",
-            consequence: "Tasks pile up even more",
-            interpretation: "I'm not capable of handling this",
-            emotion: "Anxiety and shame spiral",
-            behavior: "Avoid responsibilities completely"
-          }
-        };
-        setMessages(prev => [...prev, narrativeMessage]);
-      }, 2000);
-
-      setTimeout(() => {
-        const spiessMessage: Message = {
-          id: (Date.now() + 3).toString(),
-          type: 'system',
-          content: 'SPIESS Map Generated',
-          timestamp: new Date(),
-          analysisStage: 'spiess-map',
-          analysisData: {
-            sensations: ["Tight chest", "Racing heart", "Tension in shoulders"],
-            patterns: ["Perfectionism", "All-or-nothing thinking"],
-            interpretations: ["I must be perfect or I'm a failure"],
-            emotions: ["Anxiety", "Shame", "Overwhelm"],
-            stories: ["I'm not good enough", "Everyone else has it together"],
-            solutions: ["Gradual exposure therapy", "Mindfulness practices", "Time management skills"]
-          }
-        };
-        setMessages(prev => [...prev, spiessMessage]);
-      }, 4000);
-
-      setTimeout(() => {
-        const summaryMessage: Message = {
-          id: (Date.now() + 4).toString(),
-          type: 'system',
-          content: 'Analysis Summary Ready',
-          timestamp: new Date(),
-          analysisStage: 'summary',
-          analysisData: {
-            keyInsight: "Your narrative loop centers around perfectionism and avoidance",
-            breakingPoints: ["Challenge all-or-nothing thoughts", "Practice self-compassion", "Break tasks into smaller steps"],
-            recommendedTools: ["Cognitive Behavioral Therapy", "Mindfulness-Based Stress Reduction", "Pomodoro Technique"],
-            nextSteps: ["Start with 5-minute focused work sessions", "Practice daily self-compassion", "Schedule regular breaks"]
-          }
-        };
-        setMessages(prev => [...prev, summaryMessage]);
-      }, 6000);
-    }, 1500);
+    if (session.stage === 'input') {
+      await processUserInput(content);
+    }
   };
 
-  const handleClearChat = () => {
-    setMessages([{
-      id: '1',
-      type: 'system',
-      content: 'Welcome to Narrative Loop Analyzer',
-      timestamp: new Date(),
-      analysisStage: 'welcome'
-    }]);
+  const handleClarifyingAnswers = async (answers: Record<string, string>) => {
+    await processClarifyingAnswers(answers);
   };
 
-  const renderSpecialMessage = (message: Message) => {
-    switch (message.analysisStage) {
-      case 'welcome':
-        return <WelcomeCard onQuickStart={handleSendMessage} />;
+  const handleSkipQuestions = () => {
+    skipClarifyingQuestions();
+  };
+
+  const handleSettingsChange = (newSettings: Partial<typeof session.settings>) => {
+    updateSettings(newSettings);
+  };
+
+  const handleDeleteSession = () => {
+    deleteSession();
+  };
+
+  const getStageDescription = () => {
+    switch (session.stage) {
+      case 'input':
+        return 'Ready to analyze your psychological patterns';
+      case 'clarifying':
+        return 'Gathering additional details for accurate analysis';
       case 'narrative-loop':
-        return <NarrativeLoopCard data={message.analysisData} />;
+        return 'Extracting your narrative loop pattern...';
       case 'spiess-map':
-        return <SpiessMapCard data={message.analysisData} />;
+        return 'Building your SPIESS psychological map...';
       case 'summary':
-        return <SummaryCard data={message.analysisData} />;
+        return 'Generating your analysis summary...';
+      case 'complete':
+        return 'Analysis complete - review your results';
+      default:
+        return 'Psychological Pattern Analysis';
+    }
+  };
+
+  const renderCurrentStage = () => {
+    switch (session.stage) {
+      case 'input':
+        return <WelcomeCard onQuickStart={handleSendMessage} />;
+      
+      case 'clarifying':
+        return (
+          <ClarifyingQuestions
+            questions={session.clarifyingQuestions}
+            onAnswersSubmit={handleClarifyingAnswers}
+            onSkip={handleSkipQuestions}
+          />
+        );
+      
+      case 'narrative-loop':
+      case 'spiess-map':
+      case 'summary':
+        return (
+          <div className="space-y-6">
+            {session.userInput.rawInput && (
+              <MessageBubble
+                message={{
+                  id: 'user-input',
+                  type: 'user',
+                  content: session.userInput.rawInput,
+                  timestamp: session.timestamp
+                }}
+              />
+            )}
+            
+            {session.stage !== 'narrative-loop' && session.narrativeLoop && (
+              <NarrativeLoopCard data={session.narrativeLoop} />
+            )}
+            
+            {session.stage === 'narrative-loop' && isProcessing && (
+              <TypingIndicator message="Extracting your narrative loop pattern..." />
+            )}
+            
+            {session.stage === 'narrative-loop' && !isProcessing && session.narrativeLoop && (
+              <NarrativeLoopCard data={session.narrativeLoop} />
+            )}
+            
+            {session.stage !== 'spiess-map' && session.spiessMap && (
+              <SpiessMapCard data={session.spiessMap} />
+            )}
+            
+            {session.stage === 'spiess-map' && isProcessing && (
+              <TypingIndicator message="Building your SPIESS psychological map..." />
+            )}
+            
+            {session.stage === 'spiess-map' && !isProcessing && session.spiessMap && (
+              <SpiessMapCard data={session.spiessMap} />
+            )}
+            
+            {session.stage !== 'summary' && session.summary && (
+              <SummaryCard data={session.summary} />
+            )}
+            
+            {session.stage === 'summary' && isProcessing && (
+              <TypingIndicator message="Generating your analysis summary..." />
+            )}
+            
+            {session.stage === 'summary' && !isProcessing && session.summary && (
+              <SummaryCard data={session.summary} />
+            )}
+          </div>
+        );
+      
+      case 'complete':
+        return (
+          <div className="space-y-6">
+            <MessageBubble
+              message={{
+                id: 'user-input',
+                type: 'user',
+                content: session.userInput.rawInput,
+                timestamp: session.timestamp
+              }}
+            />
+            {session.narrativeLoop && <NarrativeLoopCard data={session.narrativeLoop} />}
+            {session.spiessMap && <SpiessMapCard data={session.spiessMap} />}
+            {session.summary && <SummaryCard data={session.summary} />}
+            
+            <PrivacyControls
+              settings={session.settings}
+              onSettingsChange={handleSettingsChange}
+              onDeleteSession={handleDeleteSession}
+              showInline
+            />
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -147,44 +183,73 @@ export const ChatInterface = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-background">
       {/* Header */}
-      <header className="bg-card border-b shadow-soft px-6 py-4 flex justify-between items-center">
+      <header 
+        className="bg-card border-b shadow-soft px-6 py-4 flex justify-between items-center"
+        role="banner"
+      >
         <div>
           <h1 className="text-xl font-semibold text-foreground">Narrative Loop Analyzer</h1>
-          <p className="text-sm text-muted-foreground">Psychological Pattern Analysis</p>
+          <p className="text-sm text-muted-foreground">{getStageDescription()}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={handleClearChat}>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                aria-label="Privacy and settings"
+              >
+                <Shield className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Privacy & Settings</DialogTitle>
+              </DialogHeader>
+              <PrivacyControls
+                settings={session.settings}
+                onSettingsChange={handleSettingsChange}
+                onDeleteSession={handleDeleteSession}
+              />
+            </DialogContent>
+          </Dialog>
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={startNewAnalysis}
+            aria-label="Start new analysis session"
+          >
             <Trash2 className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Settings className="h-4 w-4" />
           </Button>
         </div>
       </header>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      {/* Main Content */}
+      <main 
+        className="flex-1 overflow-y-auto px-4 py-6"
+        role="main"
+        aria-live="polite"
+        aria-label="Analysis interface"
+      >
         <div className="max-w-3xl mx-auto space-y-6">
-          {messages.map((message) => (
-            <div key={message.id} className="animate-fade-in">
-              {message.analysisStage ? (
-                renderSpecialMessage(message)
-              ) : (
-                <MessageBubble message={message} />
-              )}
-            </div>
-          ))}
-          {isTyping && <TypingIndicator />}
+          {renderCurrentStage()}
           <div ref={messagesEndRef} />
         </div>
-      </div>
+      </main>
 
-      {/* Input */}
-      <div className="border-t bg-card shadow-soft">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
+      {/* Input Area */}
+      {session.stage === 'input' && (
+        <div className="border-t bg-card shadow-soft" role="complementary">
+          <div className="max-w-3xl mx-auto px-4 py-4">
+            <ChatInput 
+              onSendMessage={handleSendMessage} 
+              disabled={isProcessing}
+              placeholder="Describe a recurring pattern or situation you'd like to analyze..."
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
