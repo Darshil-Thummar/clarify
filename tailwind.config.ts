@@ -59,12 +59,13 @@ export default {
           DEFAULT: "hsl(var(--system-message))",
           foreground: "hsl(var(--system-message-foreground))",
         },
-        psychology: {
-          primary: "hsl(var(--psychology-primary))",
-          secondary: "hsl(var(--psychology-secondary))",
-          accent: "hsl(var(--psychology-accent))",
-          warning: "hsl(var(--psychology-warning))",
-          success: "hsl(var(--psychology-success))",
+        clarify: {
+          primary: "hsl(var(--clarify-primary))",
+          secondary: "hsl(var(--clarify-secondary))",
+          accent: "hsl(var(--clarify-accent))",
+          warning: "hsl(var(--clarify-warning))",
+          success: "hsl(var(--clarify-success))",
+          neutral: "hsl(var(--clarify-neutral))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -81,6 +82,9 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        inter: ['Inter', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {
@@ -149,12 +153,14 @@ export default {
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
         "gradient-secondary": "var(--gradient-secondary)",
+        "gradient-accent": "var(--gradient-accent)",
         "gradient-background": "var(--gradient-background)",
       },
       boxShadow: {
         "soft": "var(--shadow-soft)",
         "medium": "var(--shadow-medium)", 
         "strong": "var(--shadow-strong)",
+        "card": "var(--shadow-card)",
       },
     },
   },

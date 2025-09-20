@@ -34,8 +34,8 @@ export const PrivacyControls = ({
     <div className="space-y-6">
       {/* Storage Control */}
       <div className="flex items-start gap-4">
-        <div className="w-10 h-10 bg-psychology-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-          <Database className="h-5 w-5 text-psychology-primary" />
+        <div className="w-10 h-10 bg-clarify-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+          <Database className="h-5 w-5 text-clarify-primary" />
         </div>
         <div className="flex-1 space-y-3">
           <div className="flex items-center justify-between">
@@ -65,8 +65,8 @@ export const PrivacyControls = ({
 
       {/* Name Redaction */}
       <div className="flex items-start gap-4">
-        <div className="w-10 h-10 bg-psychology-secondary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-          <UserX className="h-5 w-5 text-psychology-secondary" />
+        <div className="w-10 h-10 bg-clarify-secondary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+          <UserX className="h-5 w-5 text-clarify-secondary" />
         </div>
         <div className="flex-1 space-y-3">
           <div className="flex items-center justify-between">
@@ -95,9 +95,9 @@ export const PrivacyControls = ({
       </div>
 
       {/* Crisis Detection Notice */}
-      <div className="p-4 bg-psychology-warning/10 border border-psychology-warning/20 rounded-lg">
+      <div className="p-4 bg-clarify-warning/10 border border-clarify-warning/20 rounded-lg">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-psychology-warning flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 text-clarify-warning flex-shrink-0 mt-0.5" />
           <div>
             <h4 className="text-sm font-medium text-foreground">Safety Notice</h4>
             <p className="text-xs text-muted-foreground mt-1">

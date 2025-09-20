@@ -51,16 +51,16 @@ export const ClarifyingQuestions = ({
   };
 
   return (
-    <Card className="animate-slide-up shadow-medium border-psychology-accent/20" role="region" aria-labelledby="clarifying-title">
+    <Card className="animate-slide-up shadow-card border-clarify-accent/20" role="region" aria-labelledby="clarifying-title">
       <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-accent rounded-lg flex items-center justify-center">
-            <HelpCircle className="h-5 w-5 text-white" />
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center shadow-medium">
+            <HelpCircle className="h-6 w-6 text-white" />
           </div>
           <div>
             <CardTitle id="clarifying-title" className="text-xl">Clarifying Questions</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Help us understand your situation better ({answeredCount}/{questions.length} answered)
+            <p className="text-clarify-neutral">
+              Help me understand your situation better ({answeredCount}/{questions.length} answered)
             </p>
           </div>
         </div>
@@ -85,7 +85,7 @@ export const ClarifyingQuestions = ({
         {/* Current Question */}
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <Badge variant="outline" className="mt-1 bg-psychology-accent/10 text-psychology-accent border-psychology-accent/20">
+            <Badge variant="outline" className="mt-1 bg-clarify-accent/10 text-clarify-accent border-clarify-accent/20">
               {currentQuestionIndex + 1}
             </Badge>
             <div className="flex-1">
@@ -116,7 +116,7 @@ export const ClarifyingQuestions = ({
               {questions.slice(0, currentQuestionIndex).map((q, index) => (
                 answers[q.id] && (
                   <div key={q.id} className="flex items-start gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-psychology-success mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-clarify-success mt-0.5 flex-shrink-0" />
                     <div>
                       <span className="text-muted-foreground">{q.question}</span>
                       <p className="text-foreground truncate max-w-[300px]">{answers[q.id]}</p>

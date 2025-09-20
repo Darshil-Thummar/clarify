@@ -15,66 +15,66 @@ export const WelcomeCard = ({ onQuickStart }: WelcomeCardProps) => {
   ];
 
   return (
-    <Card className="animate-scale-in border-psychology-primary/20 shadow-medium bg-gradient-to-br from-card to-psychology-primary/5">
-      <CardContent className="p-8">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <Brain className="h-8 w-8 text-white" />
+    <Card className="animate-scale-in border-clarify-primary/20 shadow-card bg-gradient-to-br from-card to-clarify-primary/5">
+      <CardContent className="p-10">
+        <div className="text-center mb-10">
+          <div className="w-20 h-20 bg-gradient-primary rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-strong">
+            <Brain className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-foreground mb-3">
-            Welcome to Narrative Loop Analyzer
+          <h2 className="text-3xl font-bold text-foreground mb-4">
+            Welcome to Clarify
           </h2>
-          <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">
-            I'll help you understand the psychological patterns that shape your experiences. 
-            Share a situation or recurring pattern, and I'll analyze it through three stages: 
-            Narrative Loop extraction, SPIESS mapping, and actionable insights.
+          <p className="text-clarify-neutral text-lg leading-relaxed max-w-2xl mx-auto">
+            I'm your step-by-step thinking partner. I'll help you understand the psychological patterns 
+            that shape your experiences through a structured analysis: Narrative Loop extraction, 
+            SPIESS mapping, and actionable insights.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-8 mb-10">
           <div className="text-center group">
-            <div className="w-12 h-12 bg-psychology-secondary/20 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-psychology-secondary/30 transition-colors">
-              <MessageCircle className="h-6 w-6 text-psychology-secondary" />
+            <div className="w-16 h-16 bg-clarify-secondary/20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-clarify-secondary/30 transition-all duration-300 hover:scale-105 shadow-card">
+              <MessageCircle className="h-8 w-8 text-clarify-secondary" />
             </div>
-            <h3 className="font-semibold text-foreground mb-2">Narrative Loop</h3>
-            <p className="text-sm text-muted-foreground">Extract the 6-step psychological pattern</p>
+            <h3 className="font-semibold text-foreground mb-2 text-lg">Narrative Loop</h3>
+            <p className="text-clarify-neutral">Extract the 6-step psychological pattern</p>
           </div>
           
           <div className="text-center group">
-            <div className="w-12 h-12 bg-psychology-accent/20 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-psychology-accent/30 transition-colors">
-              <TrendingUp className="h-6 w-6 text-psychology-accent" />
+            <div className="w-16 h-16 bg-clarify-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-clarify-accent/30 transition-all duration-300 hover:scale-105 shadow-card">
+              <TrendingUp className="h-8 w-8 text-clarify-accent" />
             </div>
-            <h3 className="font-semibold text-foreground mb-2">SPIESS Map</h3>
-            <p className="text-sm text-muted-foreground">Visualize sensations, patterns, and solutions</p>
+            <h3 className="font-semibold text-foreground mb-2 text-lg">SPIESS Map</h3>
+            <p className="text-clarify-neutral">Visualize sensations, patterns, and solutions</p>
           </div>
           
           <div className="text-center group">
-            <div className="w-12 h-12 bg-psychology-warning/20 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-psychology-warning/30 transition-colors">
-              <Lightbulb className="h-6 w-6 text-psychology-warning" />
+            <div className="w-16 h-16 bg-clarify-warning/20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-clarify-warning/30 transition-all duration-300 hover:scale-105 shadow-card">
+              <Lightbulb className="h-8 w-8 text-clarify-warning" />
             </div>
-            <h3 className="font-semibold text-foreground mb-2">Insights</h3>
-            <p className="text-sm text-muted-foreground">Get actionable next steps and tools</p>
+            <h3 className="font-semibold text-foreground mb-2 text-lg">Insights</h3>
+            <p className="text-clarify-neutral">Get actionable next steps and tools</p>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-center text-foreground">Quick Start Examples</h3>
-          <div className="grid gap-3">
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-center text-foreground">Quick Start Examples</h3>
+          <div className="grid gap-4">
             {quickStartPrompts.map((prompt, index) => (
               <Button
                 key={index}
                 variant="outline"
-                className="text-left justify-start h-auto p-4 hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 hover:shadow-soft"
+                className="text-left justify-start h-auto p-5 hover:bg-clarify-primary/5 hover:border-clarify-primary/30 transition-all duration-300 hover:shadow-medium hover:scale-[1.02]"
                 onClick={() => onQuickStart(prompt)}
               >
-                <span className="text-sm">{prompt}</span>
+                <span className="text-clarify-neutral leading-relaxed">{prompt}</span>
               </Button>
             ))}
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-          <p className="text-sm text-muted-foreground text-center">
+        <div className="mt-8 p-6 bg-clarify-primary/5 border border-clarify-primary/20 rounded-2xl">
+          <p className="text-clarify-neutral text-center leading-relaxed">
             💡 <strong>Tip:</strong> Be specific about the situation, your thoughts, 
             feelings, and behaviors for the most accurate analysis.
           </p>

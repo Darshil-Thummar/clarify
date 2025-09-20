@@ -18,14 +18,14 @@ export const NarrativeLoopCard = ({ data }: NarrativeLoopCardProps) => {
       key: 'trigger', 
       label: 'Trigger Event', 
       value: data.trigger, 
-      color: 'bg-psychology-warning/20 text-psychology-warning',
+      color: 'bg-clarify-warning/20 text-clarify-warning',
       description: "The initial situation or stimulus that starts the loop"
     },
     { 
       key: 'reaction', 
       label: 'Initial Reaction', 
       value: data.reaction, 
-      color: 'bg-psychology-accent/20 text-psychology-accent',
+      color: 'bg-clarify-accent/20 text-clarify-accent',
       description: "Your immediate response to the trigger"
     },
     { 
@@ -39,14 +39,14 @@ export const NarrativeLoopCard = ({ data }: NarrativeLoopCardProps) => {
       key: 'interpretation', 
       label: 'Interpretation', 
       value: data.interpretation, 
-      color: 'bg-psychology-primary/20 text-psychology-primary',
+      color: 'bg-clarify-primary/20 text-clarify-primary',
       description: "How you make sense of what happened"
     },
     { 
       key: 'emotion', 
       label: 'Emotional Response', 
       value: data.emotion, 
-      color: 'bg-psychology-secondary/20 text-psychology-secondary',
+      color: 'bg-clarify-secondary/20 text-clarify-secondary',
       description: "The feelings that arise from your interpretation"
     },
     { 
@@ -59,15 +59,15 @@ export const NarrativeLoopCard = ({ data }: NarrativeLoopCardProps) => {
   ];
 
   return (
-    <Card className="animate-slide-up shadow-medium border-psychology-primary/20">
+    <Card className="animate-slide-up shadow-card border-clarify-primary/20">
       <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-            <AlertTriangle className="h-5 w-5 text-white" />
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-medium">
+            <AlertTriangle className="h-6 w-6 text-white" />
           </div>
           <div>
             <CardTitle className="text-xl">Narrative Loop Analysis</CardTitle>
-            <p className="text-sm text-muted-foreground">6-step psychological pattern identified</p>
+            <p className="text-clarify-neutral">6-step psychological pattern identified</p>
           </div>
         </div>
       </CardHeader>
@@ -112,9 +112,9 @@ export const NarrativeLoopCard = ({ data }: NarrativeLoopCardProps) => {
           ))}
         </div>
 
-        <div className="mt-6 p-4 bg-psychology-warning/10 border border-psychology-warning/20 rounded-lg">
+        <div className="mt-6 p-4 bg-clarify-warning/10 border border-clarify-warning/20 rounded-lg">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-psychology-warning flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-clarify-warning flex-shrink-0 mt-0.5" />
             <div>
               <h4 className="font-medium text-foreground mb-1">Breaking Point Identified</h4>
               <p className="text-sm text-muted-foreground mb-2">
@@ -123,7 +123,7 @@ export const NarrativeLoopCard = ({ data }: NarrativeLoopCardProps) => {
               </p>
               <div className="space-y-1">
                 {data.breakingPoints.map((point, index) => (
-                  <p key={index} className="text-xs text-psychology-warning">• {point}</p>
+                  <p key={index} className="text-xs text-clarify-warning">• {point}</p>
                 ))}
               </div>
             </div>

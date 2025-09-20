@@ -26,9 +26,9 @@ export const SpiessMapCard = ({ data }: SpiessMapCardProps) => {
       key: 'sensations',
       label: 'Sensations',
       icon: Eye,
-      color: 'text-psychology-primary',
-      bgColor: 'bg-psychology-primary/10',
-      borderColor: 'border-psychology-primary/20',
+      color: 'text-clarify-primary',
+      bgColor: 'bg-clarify-primary/10',
+      borderColor: 'border-clarify-primary/20',
       items: data.sensations,
       description: "Physical sensations in your body"
     },
@@ -36,9 +36,9 @@ export const SpiessMapCard = ({ data }: SpiessMapCardProps) => {
       key: 'patterns',
       label: 'Patterns',
       icon: Network,
-      color: 'text-psychology-secondary',
-      bgColor: 'bg-psychology-secondary/10',
-      borderColor: 'border-psychology-secondary/20',
+      color: 'text-clarify-secondary',
+      bgColor: 'bg-clarify-secondary/10',
+      borderColor: 'border-clarify-secondary/20',
       items: data.patterns,
       description: "Recurring behavioral and thought patterns"
     },
@@ -46,9 +46,9 @@ export const SpiessMapCard = ({ data }: SpiessMapCardProps) => {
       key: 'interpretations',
       label: 'Interpretations',
       icon: Lightbulb,
-      color: 'text-psychology-accent',
-      bgColor: 'bg-psychology-accent/10',
-      borderColor: 'border-psychology-accent/20',
+      color: 'text-clarify-accent',
+      bgColor: 'bg-clarify-accent/10',
+      borderColor: 'border-clarify-accent/20',
       items: data.interpretations,
       description: "How you make meaning of experiences"
     },
@@ -56,9 +56,9 @@ export const SpiessMapCard = ({ data }: SpiessMapCardProps) => {
       key: 'emotions',
       label: 'Emotions',
       icon: Heart,
-      color: 'text-psychology-warning',
-      bgColor: 'bg-psychology-warning/10',
-      borderColor: 'border-psychology-warning/20',
+      color: 'text-clarify-warning',
+      bgColor: 'bg-clarify-warning/10',
+      borderColor: 'border-clarify-warning/20',
       items: data.emotions,
       description: "Emotional responses and feelings"
     },
@@ -76,24 +76,24 @@ export const SpiessMapCard = ({ data }: SpiessMapCardProps) => {
       key: 'solutions',
       label: 'Solutions',
       icon: Wrench,
-      color: 'text-psychology-success',
-      bgColor: 'bg-psychology-success/10',
-      borderColor: 'border-psychology-success/20',
+      color: 'text-clarify-success',
+      bgColor: 'bg-clarify-success/10',
+      borderColor: 'border-clarify-success/20',
       items: data.solutions,
       description: "Potential interventions and strategies"
     }
   ];
 
   return (
-    <Card className="animate-slide-up shadow-medium border-psychology-secondary/20">
+    <Card className="animate-slide-up shadow-card border-clarify-secondary/20">
       <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-secondary rounded-lg flex items-center justify-center">
-            <Network className="h-5 w-5 text-white" />
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center shadow-medium">
+            <Network className="h-6 w-6 text-white" />
           </div>
           <div>
             <CardTitle className="text-xl">SPIESS Map</CardTitle>
-            <p className="text-sm text-muted-foreground">Interactive psychological component analysis</p>
+            <p className="text-clarify-neutral">Interactive psychological component analysis</p>
           </div>
         </div>
       </CardHeader>

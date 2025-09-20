@@ -187,9 +187,14 @@ export const ChatInterface = () => {
         className="bg-card border-b shadow-soft px-6 py-4 flex justify-between items-center"
         role="banner"
       >
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Narrative Loop Analyzer</h1>
-          <p className="text-sm text-muted-foreground">{getStageDescription()}</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-medium">
+            <Shield className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">Clarify</h1>
+            <p className="text-sm text-clarify-secondary font-medium">Your Step-by-Step Thinking Partner</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Dialog>
