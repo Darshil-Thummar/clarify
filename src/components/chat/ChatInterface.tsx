@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Trash2, Settings, Shield } from "lucide-react";
 import { useAnalysisFlow } from "@/hooks/useAnalysisFlow";
+import { getAuthToken, setAuthToken } from "@/lib/api";
+import { useNavigate, Link } from "react-router-dom";
 
 export interface Message {
   id: string;
@@ -21,6 +23,7 @@ export interface Message {
 }
 
 export const ChatInterface = () => {
+  const navigate = useNavigate();
   const {
     session,
     isProcessing,
@@ -33,6 +36,8 @@ export const ChatInterface = () => {
   } = useAnalysisFlow();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasPromptedLogin, setHasPromptedLogin] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,7 +47,23 @@ export const ChatInterface = () => {
     scrollToBottom();
   }, [session.stage]);
 
+  // First-visit modal if not authenticated
+  useEffect(() => {
+    const token = getAuthToken();
+    const seenFlag = localStorage.getItem("onboarding_seen");
+    if (!token && !seenFlag) {
+      setShowOnboarding(true);
+      localStorage.setItem("onboarding_seen", "1");
+    }
+  }, []);
+
   const handleSendMessage = async (content: string) => {
+    const token = getAuthToken();
+    if (!token && !hasPromptedLogin) {
+      setHasPromptedLogin(true);
+      navigate("/login");
+      return;
+    }
     if (session.stage === 'input') {
       await processUserInput(content);
     }
@@ -196,7 +217,27 @@ export const ChatInterface = () => {
             <p className="text-sm text-clarify-secondary font-medium">Your Step-by-Step Thinking Partner</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {!getAuthToken() ? (
+            <Button
+              size="sm"
+              onClick={() => navigate("/login")}
+            >
+              Get started
+            </Button>
+          ) : null}
+          {getAuthToken() ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setAuthToken(null);
+                navigate("/login");
+              }}
+            >
+              Logout
+            </Button>
+          ) : null}
           <Dialog>
             <DialogTrigger asChild>
               <Button 
@@ -255,6 +296,22 @@ export const ChatInterface = () => {
           </div>
         </div>
       )}
+
+      {/* First-visit Modal */}
+      <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Welcome to Clarify</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Get started by creating an account or logging in.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button variant="secondary" onClick={() => { setShowOnboarding(false); navigate("/login"); }}>Login</Button>
+            <Button onClick={() => { setShowOnboarding(false); navigate("/register"); }}>Register</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

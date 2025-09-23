@@ -34,6 +34,10 @@ npm i
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
+
+Environment variables
+
+Copy `.env.example` to `.env` and set `VITE_API_BASE_URL` (e.g. `https://clarify-be.onrender.com`).
 ```
 
 **Edit a file directly in GitHub**
