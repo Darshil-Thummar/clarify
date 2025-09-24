@@ -1,14 +1,7 @@
-// Lightweight API client with auth token support
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
+
+// API client with axios
 export const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "https://clarify-be.onrender.com";
-
-export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-
-export interface RequestOptions {
-	method?: HttpMethod;
-	path: string;
-	body?: unknown;
-	useAuth?: boolean;
-}
 
 export function getAuthToken(): string | null {
 	try {
@@ -27,36 +20,53 @@ export function setAuthToken(token: string | null): void {
 	}
 }
 
-export async function apiRequest<T = unknown>({ method = "POST", path, body, useAuth = false }: RequestOptions): Promise<T> {
-	const headers: Record<string, string> = { "Content-Type": "application/json" };
-	if (useAuth) {
+// Create axios instance
+const apiClient: AxiosInstance = axios.create({
+	baseURL: API_BASE_URL,
+	headers: {
+		'Content-Type': 'application/json',
+	},
+});
+
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+	(config) => {
 		const token = getAuthToken();
-		if (token) headers["Authorization"] = `Bearer ${token}`;
-	}
-
-	const response = await fetch(`${API_BASE_URL}${path}`, {
-		method,
-		headers,
-		body: body ? JSON.stringify(body) : undefined,
-	});
-
-	if (!response.ok) {
-		let errorMessage = `HTTP ${response.status}`;
-		try {
-			const err = await response.json();
-			errorMessage = err?.message || err?.error || errorMessage;
-		} catch {
-			// not json
+		if (token) {
+			config.headers.Authorization = `Bearer ${token}`;
 		}
-		throw new Error(errorMessage);
+		return config;
+	},
+	(error) => {
+		return Promise.reject(error);
 	}
+);
 
-	// try json, allow empty
-	try {
-		return (await response.json()) as T;
-	} catch {
-		return undefined as unknown as T;
+// Response interceptor for error handling
+apiClient.interceptors.response.use(
+	(response: AxiosResponse) => {
+		return response;
+	},
+	(error) => {
+		if (error.response?.data?.message) {
+			throw new Error(error.response.data.message);
+		} else if (error.response?.data?.error) {
+			throw new Error(error.response.data.error);
+		} else if (error.message) {
+			throw new Error(error.message);
+		} else {
+			throw new Error(`HTTP ${error.response?.status || 'Unknown error'}`);
+		}
 	}
+);
+
+export async function apiRequest<T = unknown>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, data?: unknown): Promise<T> {
+	const response = await apiClient.request({
+		method,
+		url: path,
+		data,
+	});
+	return response.data;
 }
 
 // Auth endpoints
@@ -90,15 +100,15 @@ export interface AuthResponse {
 }
 
 export async function registerUser(payload: RegisterPayload): Promise<AuthResponse> {
-	return await apiRequest<AuthResponse>({ path: "/auth/register", body: payload, method: "POST" });
+	return await apiRequest<AuthResponse>('POST', "/auth/register", payload);
 }
 
 export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
-	return await apiRequest<AuthResponse>({ path: "/auth/login", body: payload, method: "POST" });
+	return await apiRequest<AuthResponse>('POST', "/auth/login", payload);
 }
 
 export async function fetchMe<T = unknown>(): Promise<T> {
-	return await apiRequest<T>({ path: "/auth/me", method: "GET", useAuth: true });
+	return await apiRequest<T>('GET', "/auth/me");
 }
 
 
