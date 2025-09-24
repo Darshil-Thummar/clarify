@@ -12,7 +12,7 @@ export interface RequestOptions {
 
 export function getAuthToken(): string | null {
 	try {
-		return localStorage.getItem("auth_token");
+		return sessionStorage.getItem("auth_token");
 	} catch {
 		return null;
 	}
@@ -20,8 +20,8 @@ export function getAuthToken(): string | null {
 
 export function setAuthToken(token: string | null): void {
 	try {
-		if (token) localStorage.setItem("auth_token", token);
-		else localStorage.removeItem("auth_token");
+		if (token) sessionStorage.setItem("auth_token", token);
+		else sessionStorage.removeItem("auth_token");
 	} catch {
 		// ignore
 	}
@@ -75,8 +75,18 @@ export interface LoginPayload {
 }
 
 export interface AuthResponse {
-	token: string;
-	user?: unknown;
+	success: boolean;
+	message: string;
+	data: {
+		user: {
+			_id: string;
+			username: string;
+			email: string;
+			firstName: string;
+			lastName: string;
+		};
+		token: string;
+	};
 }
 
 export async function registerUser(payload: RegisterPayload): Promise<AuthResponse> {

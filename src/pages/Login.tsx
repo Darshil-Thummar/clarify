@@ -21,8 +21,8 @@ const Login = () => {
 				: { username: usernameOrEmail, password };
 			return await loginUser(payload);
 		},
-		onSuccess: ({ token }) => {
-			setAuthToken(token);
+		onSuccess: ({ data }) => {
+			setAuthToken(data.token);
 			toast({ title: "Logged in" });
 			navigate("/");
 		},

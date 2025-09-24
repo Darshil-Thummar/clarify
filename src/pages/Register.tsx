@@ -28,10 +28,10 @@ const Register = () => {
 			firstName: form.firstName,
 			lastName: form.lastName,
 		}),
-		onSuccess: ({ token }) => {
-			setAuthToken(token);
+		onSuccess: ({ data }) => {
+			setAuthToken(data.token);
 			toast({ title: "Registered" });
-			navigate("/me");
+			navigate("/login");
 		},
 		onError: (err: any) => {
 			toast({ title: "Registration failed", description: err?.message || "Unexpected error" });

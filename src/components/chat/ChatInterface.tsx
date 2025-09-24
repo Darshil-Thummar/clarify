@@ -10,9 +10,11 @@ import { ClarifyingQuestions } from "../analysis/ClarifyingQuestions";
 import { PrivacyControls } from "../settings/PrivacyControls";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Trash2, Settings, Shield } from "lucide-react";
 import { useAnalysisFlow } from "@/hooks/useAnalysisFlow";
-import { getAuthToken, setAuthToken } from "@/lib/api";
+import { getAuthToken, setAuthToken, fetchMe } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, Link } from "react-router-dom";
 
 export interface Message {
@@ -34,6 +36,13 @@ export const ChatInterface = () => {
     deleteSession,
     startNewAnalysis,
   } = useAnalysisFlow();
+
+  const token = getAuthToken();
+  const { data: userData } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => await fetchMe<any>(),
+    enabled: !!token,
+  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -218,26 +227,46 @@ export const ChatInterface = () => {
           </div>
         </div>
         <div className="flex gap-2 items-center">
-          {!getAuthToken() ? (
+          {!token ? (
             <Button
               size="sm"
               onClick={() => navigate("/login")}
             >
               Get started
             </Button>
-          ) : null}
-          {getAuthToken() ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setAuthToken(null);
-                navigate("/login");
-              }}
-            >
-              Logout
-            </Button>
-          ) : null}
+          ) : (
+            <>
+              <span className="text-sm text-muted-foreground">
+                Welcome, {userData?.data?.user?.username || userData?.data?.user?.firstName || "User"}
+              </span>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    Logout
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will log you out of your account. You'll need to sign in again to continue.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        setAuthToken(null);
+                        window.location.reload();
+                      }}
+                    >
+                      Logout
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          )}
           <Dialog>
             <DialogTrigger asChild>
               <Button 
