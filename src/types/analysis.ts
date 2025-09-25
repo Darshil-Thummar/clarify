@@ -58,6 +58,7 @@ export interface AnalysisSummary {
 
 export interface AnalysisSession {
   id: string;
+  serverSessionId?: string;
   userInput: UserInput;
   clarifyingQuestions: ClarifyingQuestion[];
   narrativeLoop?: NarrativeLoopStep;

@@ -39,6 +39,8 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
           isUser && "bg-user-message text-user-message-foreground",
           !isUser && !isSystem && "bg-ai-message text-ai-message-foreground",
           isSystem && "bg-system-message text-system-message-foreground border border-psychology-warning/20"
+        ,
+          !isUser && message.animated && "animate-slide-up"
         )}>
           <p className="text-sm leading-relaxed whitespace-pre-wrap">
             {message.content}

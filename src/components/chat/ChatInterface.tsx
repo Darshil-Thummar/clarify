@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
@@ -10,17 +10,23 @@ import { ClarifyingQuestions } from "../analysis/ClarifyingQuestions";
 import { PrivacyControls } from "../settings/PrivacyControls";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Trash2, Settings, Shield } from "lucide-react";
 import { useAnalysisFlow } from "@/hooks/useAnalysisFlow";
+import { getAuthToken, setAuthToken, fetchMe } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate, Link } from "react-router-dom";
 
 export interface Message {
   id: string;
   type: 'user' | 'ai' | 'system';
   content: string;
   timestamp: Date;
+  animated?: boolean;
 }
 
 export const ChatInterface = () => {
+  const navigate = useNavigate();
   const {
     session,
     isProcessing,
@@ -32,7 +38,26 @@ export const ChatInterface = () => {
     startNewAnalysis,
   } = useAnalysisFlow();
 
+  const token = getAuthToken();
+  const { data: userData } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => await fetchMe<any>(),
+    enabled: !!token,
+  });
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasPromptedLogin, setHasPromptedLogin] = useState(false);
+  const [hasUsedTrial, setHasUsedTrial] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("trial_used") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiRespondedForTurn, setAiRespondedForTurn] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,13 +65,75 @@ export const ChatInterface = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [session.stage]);
+  }, [session.stage, messages.length, isAnalyzing]);
+
+  // First-visit modal if not authenticated
+  useEffect(() => {
+    const token = getAuthToken();
+    const seenFlag = localStorage.getItem("onboarding_seen");
+    if (!token && !seenFlag) {
+      setShowOnboarding(true);
+      localStorage.setItem("onboarding_seen", "1");
+    }
+  }, []);
 
   const handleSendMessage = async (content: string) => {
-    if (session.stage === 'input') {
-      await processUserInput(content);
+    const token = getAuthToken();
+    if (!token) {
+      if (!hasUsedTrial) {
+        setHasUsedTrial(true);
+        try { localStorage.setItem("trial_used", "1"); } catch {}
+        // Allow exactly one trial message without login
+      } else {
+        if (!hasPromptedLogin) {
+          setHasPromptedLogin(true);
+          navigate("/login");
+        }
+        return;
+      }
     }
+
+    // Immediately show user's message in chat
+    const userMsg: Message = {
+      id: `m-${Date.now()}`,
+      type: 'user',
+      content,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, userMsg]);
+    setIsAnalyzing(true);
+    setAiRespondedForTurn(false);
+
+    if (session.stage !== 'input') {
+      // Start a fresh analysis when user sends a new message mid-flow
+      startNewAnalysis();
+    }
+    await processUserInput(content);
   };
+
+  // When backend/local flow settles, replace loader with AI response
+  useEffect(() => {
+    if (!isAnalyzing || aiRespondedForTurn) return;
+    if (isProcessing) return; // still working
+
+    const hasQuestions = session.clarifyingQuestions && session.clarifyingQuestions.length > 0;
+    let aiContent = '';
+    if (hasQuestions) {
+      const lines = session.clarifyingQuestions.map((q, idx) => `${idx + 1}. ${q.question}`).join('\n');
+      aiContent = `I’d like to ask a few clarifying questions to better understand:\n\n${lines}\n\nPlease reply with your answers, and we’ll continue.`;
+    } else {
+      aiContent = 'Analyzed your input. Proceeding with your analysis...';
+    }
+    setMessages(prev => [...prev, {
+      id: `a-${Date.now()}`,
+      type: 'ai',
+      content: aiContent,
+      timestamp: new Date(),
+      animated: true,
+    }]);
+    setIsAnalyzing(false);
+    setAiRespondedForTurn(true);
+  }, [isAnalyzing, aiRespondedForTurn, isProcessing, session.clarifyingQuestions]);
 
   const handleClarifyingAnswers = async (answers: Record<string, string>) => {
     await processClarifyingAnswers(answers);
@@ -86,6 +173,7 @@ export const ChatInterface = () => {
   const renderCurrentStage = () => {
     switch (session.stage) {
       case 'input':
+        if (messages.length > 0 || isAnalyzing) return null;
         return <WelcomeCard onQuickStart={handleSendMessage} />;
       
       case 'clarifying':
@@ -102,7 +190,7 @@ export const ChatInterface = () => {
       case 'summary':
         return (
           <div className="space-y-6">
-            {session.userInput.rawInput && (
+            {session.userInput.rawInput && messages.length === 0 && (
               <MessageBubble
                 message={{
                   id: 'user-input',
@@ -154,14 +242,16 @@ export const ChatInterface = () => {
       case 'complete':
         return (
           <div className="space-y-6">
-            <MessageBubble
-              message={{
-                id: 'user-input',
-                type: 'user',
-                content: session.userInput.rawInput,
-                timestamp: session.timestamp
-              }}
-            />
+            {messages.length === 0 && (
+              <MessageBubble
+                message={{
+                  id: 'user-input',
+                  type: 'user',
+                  content: session.userInput.rawInput,
+                  timestamp: session.timestamp
+                }}
+              />
+            )}
             {session.narrativeLoop && <NarrativeLoopCard data={session.narrativeLoop} />}
             {session.spiessMap && <SpiessMapCard data={session.spiessMap} />}
             {session.summary && <SummaryCard data={session.summary} />}
@@ -196,7 +286,47 @@ export const ChatInterface = () => {
             <p className="text-sm text-clarify-secondary font-medium">Your Step-by-Step Thinking Partner</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {!token ? (
+            <Button
+              size="sm"
+              onClick={() => navigate("/login")}
+            >
+              Get started
+            </Button>
+          ) : (
+            <>
+              <span className="text-sm text-muted-foreground">
+                Welcome, {userData?.data?.user?.username || userData?.data?.user?.firstName || "User"}
+              </span>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    Logout
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will log you out of your account. You'll need to sign in again to continue.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        setAuthToken(null);
+                        window.location.reload();
+                      }}
+                    >
+                      Logout
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          )}
           <Dialog>
             <DialogTrigger asChild>
               <Button 
@@ -238,23 +368,51 @@ export const ChatInterface = () => {
         aria-label="Analysis interface"
       >
         <div className="max-w-3xl mx-auto space-y-6">
+          {/* Chat transcript */}
+          <div className="space-y-4">
+            {messages.map(m => (
+              <MessageBubble key={m.id} message={m} />
+            ))}
+            {isAnalyzing && (
+              <TypingIndicator message="Analyzing…" />
+            )}
+          </div>
+
           {renderCurrentStage()}
           <div ref={messagesEndRef} />
         </div>
       </main>
 
-      {/* Input Area */}
-      {session.stage === 'input' && (
-        <div className="border-t bg-card shadow-soft" role="complementary">
-          <div className="max-w-3xl mx-auto px-4 py-4">
-            <ChatInput 
-              onSendMessage={handleSendMessage} 
-              disabled={isProcessing}
-              placeholder="Describe a recurring pattern or situation you'd like to analyze..."
-            />
-          </div>
+      {/* Input Area - always available */}
+      <div className="border-t bg-card shadow-soft" role="complementary">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <ChatInput 
+            onSendMessage={handleSendMessage} 
+            disabled={isProcessing}
+            placeholder={
+              session.stage === 'clarifying' 
+                ? "You can also start a new topic here..."
+                : "Describe a recurring pattern or situation you'd like to analyze..."
+            }
+          />
         </div>
-      )}
+      </div>
+
+      {/* First-visit Modal */}
+      <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Welcome to Clarify</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Get started by creating an account or logging in.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button variant="secondary" onClick={() => { setShowOnboarding(false); navigate("/login"); }}>Login</Button>
+            <Button onClick={() => { setShowOnboarding(false); navigate("/register"); }}>Register</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

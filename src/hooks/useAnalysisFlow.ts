@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { AnalysisSession, UserInput, ClarifyingQuestion, AnalysisStage, NarrativeLoopStep, SpiessMapData, AnalysisSummary } from '@/types/analysis';
+import { analyze, getAuthToken } from '@/lib/api';
 
 export const useAnalysisFlow = () => {
   const [session, setSession] = useState<AnalysisSession>({
@@ -55,103 +56,30 @@ export const useAnalysisFlow = () => {
     return questions.slice(0, 3); // Max 3 questions
   }, []);
 
-  // Process initial user input
-  const processUserInput = useCallback(async (rawInput: string) => {
-    setIsProcessing(true);
-    
-    // Simple extraction from raw input (in real app, this would use AI)
-    const extractedInput: UserInput = {
-      rawInput,
-      // Mock extraction - in production this would be AI-powered
-      trigger: rawInput.includes('work') || rawInput.includes('deadline') ? 'Work deadline pressure' : undefined,
-      fear: rawInput.includes('fail') || rawInput.includes('not good enough') ? 'Fear of failure' : undefined,
-      emotion: rawInput.includes('anxious') || rawInput.includes('worried') ? 'Anxiety' : undefined,
-      outcome: rawInput.includes('avoid') || rawInput.includes('procrastinate') ? 'Avoidance behavior' : undefined,
-    };
-
-    const questions = needsClarification(extractedInput);
-    
-    setSession(prev => ({
-      ...prev,
-      userInput: extractedInput,
-      clarifyingQuestions: questions,
-      stage: questions.length > 0 ? 'clarifying' : 'narrative-loop',
-    }));
-
-    setIsProcessing(false);
-
-    // If no clarification needed, proceed to analysis
-    if (questions.length === 0) {
-      setTimeout(() => processNarrativeLoop(extractedInput), 1000);
-    }
-  }, [needsClarification]);
-
-  // Process clarifying question answers
-  const processClarifyingAnswers = useCallback(async (answers: Record<string, string>) => {
-    setIsProcessing(true);
-    
-    // Merge answers into user input
-    const updatedInput: UserInput = { ...session.userInput };
-    
-    session.clarifyingQuestions.forEach(question => {
-      if (answers[question.id]) {
-        updatedInput[question.field] = answers[question.id];
-      }
-    });
-
-    setSession(prev => ({
-      ...prev,
-      userInput: updatedInput,
-      stage: 'narrative-loop',
-    }));
-
-    setIsProcessing(false);
-
-    // Proceed to narrative loop analysis
-    setTimeout(() => processNarrativeLoop(updatedInput), 1000);
-  }, [session.userInput, session.clarifyingQuestions]);
-
-  // Skip clarifying questions
-  const skipClarifyingQuestions = useCallback(() => {
-    setSession(prev => ({
-      ...prev,
-      stage: 'narrative-loop',
-    }));
-    
-    setTimeout(() => processNarrativeLoop(session.userInput), 1000);
-  }, [session.userInput]);
-
-  // Process Narrative Loop Analysis
-  const processNarrativeLoop = useCallback(async (input: UserInput) => {
+  // Process Summary
+  const processSummary = useCallback(async (narrativeLoop: NarrativeLoopStep, spiessMap: SpiessMapData) => {
     setIsProcessing(true);
 
-    // Mock narrative loop analysis (in production, this would be AI-generated)
-    const narrativeLoop: NarrativeLoopStep = {
-      trigger: input.trigger || "Feeling overwhelmed by responsibilities",
-      reaction: "Immediate stress and mental fog",
-      consequence: "Tasks start piling up and feeling more overwhelming",
-      interpretation: input.fear || "I'm not capable of handling this level of responsibility",
-      emotion: input.emotion || "Anxiety, shame, and feeling overwhelmed",
-      behavior: input.outcome || "Avoid tasks completely, leading to more pressure",
-      whyItFeelsReal: "Past experiences of struggle make this interpretation feel valid",
-      hiddenLogic: "Avoiding protects from immediate discomfort but creates larger problems",
+    // Generate concise summary (<250 words)
+    const summary: AnalysisSummary = {
+      keyInsight: "Your narrative loop centers around perfectionism-driven avoidance that reinforces feelings of inadequacy.",
+      mechanism: "Perfectionism triggers all-or-nothing thinking, leading to task avoidance when standards feel unachievable. This avoidance confirms the belief 'I'm not capable,' creating a self-reinforcing cycle of anxiety and shame.",
       breakingPoints: [
-        "Challenge the interpretation before emotions escalate",
-        "Break overwhelming tasks into smaller, manageable steps",
-        "Practice self-compassion when facing difficulties"
-      ]
+        "Challenge perfectionist thoughts before they trigger avoidance",
+        "Practice self-compassion when facing difficult tasks",
+        "Break overwhelming tasks into smaller, manageable steps"
+      ],
+      nextStep: "Complete the micro-test: work on one small task for 10 minutes today without stopping, regardless of the quality of your work.",
+      wordCount: 89
     };
 
     setSession(prev => ({
       ...prev,
-      narrativeLoop,
-      stage: 'spiess-map',
+      summary,
+      stage: 'complete',
     }));
 
     setIsProcessing(false);
-    
-    // Proceed to SPIESS map
-    setTimeout(() => processSpiessMap(narrativeLoop), 2000);
   }, []);
 
   // Process SPIESS Map
@@ -194,33 +122,149 @@ export const useAnalysisFlow = () => {
     
     // Proceed to summary
     setTimeout(() => processSummary(narrativeLoop, spiessMap), 2000);
-  }, []);
+  }, [processSummary]);
 
-  // Process Summary
-  const processSummary = useCallback(async (narrativeLoop: NarrativeLoopStep, spiessMap: SpiessMapData) => {
+  // Process Narrative Loop Analysis
+  const processNarrativeLoop = useCallback(async (input: UserInput) => {
     setIsProcessing(true);
 
-    // Generate concise summary (<250 words)
-    const summary: AnalysisSummary = {
-      keyInsight: "Your narrative loop centers around perfectionism-driven avoidance that reinforces feelings of inadequacy.",
-      mechanism: "Perfectionism triggers all-or-nothing thinking, leading to task avoidance when standards feel unachievable. This avoidance confirms the belief 'I'm not capable,' creating a self-reinforcing cycle of anxiety and shame.",
+    // Mock narrative loop analysis (in production, this would be AI-generated)
+    const narrativeLoop: NarrativeLoopStep = {
+      trigger: input.trigger || "Feeling overwhelmed by responsibilities",
+      reaction: "Immediate stress and mental fog",
+      consequence: "Tasks start piling up and feeling more overwhelming",
+      interpretation: input.fear || "I'm not capable of handling this level of responsibility",
+      emotion: input.emotion || "Anxiety, shame, and feeling overwhelmed",
+      behavior: input.outcome || "Avoid tasks completely, leading to more pressure",
+      whyItFeelsReal: "Past experiences of struggle make this interpretation feel valid",
+      hiddenLogic: "Avoiding protects from immediate discomfort but creates larger problems",
       breakingPoints: [
-        "Challenge perfectionist thoughts before they trigger avoidance",
-        "Practice self-compassion when facing difficult tasks",
-        "Break overwhelming tasks into smaller, manageable steps"
-      ],
-      nextStep: "Complete the micro-test: work on one small task for 10 minutes today without stopping, regardless of the quality of your work.",
-      wordCount: 89
+        "Challenge the interpretation before emotions escalate",
+        "Break overwhelming tasks into smaller, manageable steps",
+        "Practice self-compassion when facing difficulties"
+      ]
     };
 
     setSession(prev => ({
       ...prev,
-      summary,
-      stage: 'complete',
+      narrativeLoop,
+      stage: 'spiess-map',
     }));
 
     setIsProcessing(false);
-  }, []);
+    
+    // Proceed to SPIESS map
+    setTimeout(() => processSpiessMap(narrativeLoop), 2000);
+  }, [processSpiessMap]);
+
+  // Process initial user input
+  const processUserInput = useCallback(async (rawInput: string) => {
+    setIsProcessing(true);
+
+    // Always store raw input immediately
+    const baseInput: UserInput = { rawInput };
+
+    try {
+      const token = getAuthToken();
+      const response = await analyze({
+        input: rawInput,
+        storageOptIn: !!token,
+        redactNames: true,
+      });
+
+      // Map questions (string[]) to our ClarifyingQuestion[] shape
+      const mappedQuestions: ClarifyingQuestion[] = (response.questions || []).map((q, index) => ({
+        id: `q${index + 1}`,
+        question: q,
+        field: 'rawInput',
+      }));
+
+      // Determine next stage
+      const nextStage: AnalysisStage = response.needsAnswers
+        ? 'clarifying'
+        : 'narrative-loop';
+
+      setSession(prev => ({
+        ...prev,
+        userInput: baseInput,
+        clarifyingQuestions: mappedQuestions,
+        stage: nextStage,
+        serverSessionId: response.sessionId,
+      }));
+
+      setIsProcessing(false);
+
+      if (!response.needsAnswers) {
+        // Continue with local pipeline using existing mock logic
+        setTimeout(() => processNarrativeLoop(baseInput), 500);
+      }
+      return;
+    } catch {
+      // Fallback to existing local clarification logic if API fails
+      const extractedInput: UserInput = {
+        rawInput,
+        trigger: rawInput.includes('work') || rawInput.includes('deadline') ? 'Work deadline pressure' : undefined,
+        fear: rawInput.includes('fail') || rawInput.includes('not good enough') ? 'Fear of failure' : undefined,
+        emotion: rawInput.includes('anxious') || rawInput.includes('worried') ? 'Anxiety' : undefined,
+        outcome: rawInput.includes('avoid') || rawInput.includes('procrastinate') ? 'Avoidance behavior' : undefined,
+      };
+
+      const questions = needsClarification(extractedInput);
+
+      setSession(prev => ({
+        ...prev,
+        userInput: extractedInput,
+        clarifyingQuestions: questions,
+        stage: questions.length > 0 ? 'clarifying' : 'narrative-loop',
+      }));
+
+      setIsProcessing(false);
+
+      if (questions.length === 0) {
+        setTimeout(() => processNarrativeLoop(extractedInput), 1000);
+      }
+    }
+  }, [needsClarification, processNarrativeLoop]);
+
+  // Process clarifying question answers
+  const processClarifyingAnswers = useCallback(async (answers: Record<string, string>) => {
+    setIsProcessing(true);
+    
+    // Merge answers into user input
+    const updatedInput: UserInput = { ...session.userInput };
+    
+    session.clarifyingQuestions.forEach(question => {
+      if (answers[question.id]) {
+        // Avoid overwriting raw input when backend questions are generic
+        if (question.field !== 'rawInput') {
+          updatedInput[question.field] = answers[question.id];
+        }
+      }
+    });
+
+    setSession(prev => ({
+      ...prev,
+      userInput: updatedInput,
+      stage: 'narrative-loop',
+    }));
+
+    setIsProcessing(false);
+
+    // Proceed to narrative loop analysis
+    setTimeout(() => processNarrativeLoop(updatedInput), 1000);
+  }, [session.userInput, session.clarifyingQuestions]);
+
+  // Skip clarifying questions
+  const skipClarifyingQuestions = useCallback(() => {
+    setSession(prev => ({
+      ...prev,
+      stage: 'narrative-loop',
+    }));
+    
+    setTimeout(() => processNarrativeLoop(session.userInput), 1000);
+  }, [session.userInput]);
+
+  // (moved earlier)
 
   // Update privacy settings
   const updateSettings = useCallback((newSettings: Partial<typeof session.settings>) => {

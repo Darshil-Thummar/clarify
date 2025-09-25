@@ -31,6 +31,7 @@ export const ChatInput = ({ onSendMessage, disabled, placeholder = "Describe a s
   return (
     <form onSubmit={handleSubmit} className="flex gap-3 items-end">
       <div className="flex-1 relative">
+
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -47,24 +48,24 @@ export const ChatInput = ({ onSendMessage, disabled, placeholder = "Describe a s
         
         {/* Attachment and Mic buttons */}
         <div className="absolute right-2 bottom-2 flex gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 hover:bg-muted/80"
-            disabled={disabled}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 hover:bg-muted/80"
-            disabled={disabled}
-          >
-            <Mic className="h-4 w-4" />
-          </Button>
+          {/*<Button*/}
+          {/*  type="button"*/}
+          {/*  variant="ghost"*/}
+          {/*  size="sm"*/}
+          {/*  className="h-8 w-8 p-0 hover:bg-muted/80"*/}
+          {/*  disabled={disabled}*/}
+          {/*>*/}
+          {/*  <Paperclip className="h-4 w-4" />*/}
+          {/*</Button>*/}
+          {/*<Button*/}
+          {/*  type="button"*/}
+          {/*  variant="ghost"*/}
+          {/*  size="sm"*/}
+          {/*  className="h-8 w-8 p-0 hover:bg-muted/80"*/}
+          {/*  disabled={disabled}*/}
+          {/*>*/}
+          {/*  <Mic className="h-4 w-4" />*/}
+          {/*</Button>*/}
         </div>
       </div>
 
