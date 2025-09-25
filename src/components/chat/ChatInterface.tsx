@@ -79,19 +79,6 @@ export const ChatInterface = () => {
 
   const handleSendMessage = async (content: string) => {
     const token = getAuthToken();
-    if (!token) {
-      if (!hasUsedTrial) {
-        setHasUsedTrial(true);
-        try { localStorage.setItem("trial_used", "1"); } catch {}
-        // Allow exactly one trial message without login
-      } else {
-        if (!hasPromptedLogin) {
-          setHasPromptedLogin(true);
-          navigate("/login");
-        }
-        return;
-      }
-    }
 
     // Immediately show user's message in chat
     const userMsg: Message = {
