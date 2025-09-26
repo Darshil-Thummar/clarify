@@ -3,19 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { HelpCircle, ArrowRight, CheckCircle } from "lucide-react";
+import { HelpCircle, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
 import { ClarifyingQuestion } from "@/types/analysis";
 
 interface ClarifyingQuestionsProps {
   questions: ClarifyingQuestion[];
   onAnswersSubmit: (answers: Record<string, string>) => void;
   onSkip: () => void;
+  isProcessing?: boolean;
 }
 
 export const ClarifyingQuestions = ({ 
   questions, 
   onAnswersSubmit, 
-  onSkip 
+  onSkip,
+  isProcessing = false
 }: ClarifyingQuestionsProps) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -151,11 +153,20 @@ export const ClarifyingQuestions = ({
           
           <Button 
             onClick={handleNext}
-            disabled={!canProceed}
+            disabled={!canProceed || isProcessing}
             className="bg-gradient-accent hover:opacity-90"
           >
-            {isLastQuestion ? 'Start Analysis' : 'Next Question'}
-            <ArrowRight className="h-4 w-4 ml-2" />
+            {isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                {isLastQuestion ? 'Start Analysis' : 'Next Question'}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
           </Button>
         </div>
 

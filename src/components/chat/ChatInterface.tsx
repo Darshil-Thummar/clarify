@@ -3,8 +3,7 @@ import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
 import { SessionSidebar } from "./SessionSidebar";
-import { ProgressiveLoader } from "../ui/progressive-loader";
-import { AIAnalysisLoader } from "../ui/ai-analysis-loader";
+// Removed large top-of-page loaders in favor of inline typing indicator
 import { WelcomeCard } from "./WelcomeCard";
 import { NarrativeLoopCard } from "../analysis/NarrativeLoopCard";
 import { SpiessMapCard } from "../analysis/SpiessMapCard";
@@ -15,7 +14,7 @@ import { PrivacyControls } from "../settings/PrivacyControls";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Trash2, Settings, Shield } from "lucide-react";
+import { Trash2, Shield } from "lucide-react";
 import { useAnalysisFlow } from "@/hooks/useAnalysisFlow";
 import { getAuthToken, setAuthToken, fetchMe, setUserId } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -111,8 +110,7 @@ export const ChatInterface = () => {
       // Start a fresh analysis when user sends a new message mid-flow
       startNewAnalysis();
     }
-    const uid = userData?.data?.user?._id || userData?.user?._id || null;
-    await processUserInput(content, uid);
+    await processUserInput(content);
   };
 
   // When backend/local flow settles, replace loader with AI response
@@ -186,6 +184,7 @@ export const ChatInterface = () => {
             questions={session.clarifyingQuestions}
             onAnswersSubmit={handleClarifyingAnswers}
             onSkip={handleSkipQuestions}
+            isProcessing={apiPhase === 'answers'}
           />
         );
 
@@ -398,19 +397,21 @@ export const ChatInterface = () => {
         aria-label="Analysis interface"
       >
         <div className="max-w-3xl mx-auto space-y-6">
-          {/* AI Analysis Loader */}
-          <AIAnalysisLoader 
-            active={apiPhase === 'analyze' || apiPhase === 'answers'} 
-            currentStage={apiPhase === 'answers' ? 'answers' : 'analyze'}
-            showStages={false}
-          />
           {/* Chat transcript */}
           <div className="space-y-4">
             {messages.map(m => (
               <MessageBubble key={m.id} message={m} />
             ))}
-            {isAnalyzing && (
-              <TypingIndicator message="Analyzing…" />
+            {(isAnalyzing || apiPhase === 'analyze' || apiPhase === 'answers') && session.stage !== 'clarifying' && (
+              <TypingIndicator 
+                message={
+                  apiPhase === 'answers' 
+                    ? 'Processing your answers…' 
+                    : apiPhase === 'analyze' 
+                      ? 'Analyzing your input…' 
+                      : 'Analyzing…'
+                } 
+              />
             )}
           </div>
 
