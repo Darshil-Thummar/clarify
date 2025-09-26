@@ -2,6 +2,8 @@ import { useRef, useEffect, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
+import { SessionSidebar } from "./SessionSidebar";
+import { ProgressiveLoader } from "../ui/progressive-loader";
 import { WelcomeCard } from "./WelcomeCard";
 import { NarrativeLoopCard } from "../analysis/NarrativeLoopCard";
 import { SpiessMapCard } from "../analysis/SpiessMapCard";
@@ -14,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Trash2, Settings, Shield } from "lucide-react";
 import { useAnalysisFlow } from "@/hooks/useAnalysisFlow";
-import { getAuthToken, setAuthToken, fetchMe } from "@/lib/api";
+import { getAuthToken, setAuthToken, fetchMe, setUserId } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -37,6 +39,8 @@ export const ChatInterface = () => {
     updateSettings,
     deleteSession,
     startNewAnalysis,
+    apiPhase,
+    loadServerSession,
   } = useAnalysisFlow();
 
   const token = getAuthToken();
@@ -45,6 +49,14 @@ export const ChatInterface = () => {
     queryFn: async () => await fetchMe<any>(),
     enabled: !!token,
   });
+
+  // Persist user id as soon as we have it
+  useEffect(() => {
+    const id = userData?.data?.user?._id || userData?.user?._id;
+    if (id) {
+      setUserId(id);
+    }
+  }, [userData?.data?.user?._id, userData?.user?._id]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -60,6 +72,7 @@ export const ChatInterface = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiRespondedForTurn, setAiRespondedForTurn] = useState(false);
   const [showAnswersReview, setShowAnswersReview] = useState(false);
+  // Sidebar is always visible when logged-in
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -97,7 +110,8 @@ export const ChatInterface = () => {
       // Start a fresh analysis when user sends a new message mid-flow
       startNewAnalysis();
     }
-    await processUserInput(content);
+    const uid = userData?.data?.user?._id || userData?.user?._id || null;
+    await processUserInput(content, uid);
   };
 
   // When backend/local flow settles, replace loader with AI response
@@ -272,7 +286,21 @@ export const ChatInterface = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-background">
+    <div className="flex h-screen bg-gradient-background">
+      {/* Sidebar (only for logged-in users) */}
+      {token && (
+        <aside className="w-80 border-r bg-card/50 backdrop-blur-sm"> 
+          <SessionSidebar 
+            onSelectSession={async (id) => {
+              const result = await loadServerSession(id);
+              setMessages(result.messages);
+            }}
+          />
+        </aside>
+      )}
+
+      {/* Main column */}
+      <div className="flex flex-col flex-1">
       {/* Header */}
       <header 
         className="bg-card border-b shadow-soft px-6 py-4 flex justify-between items-center"
@@ -369,6 +397,8 @@ export const ChatInterface = () => {
         aria-label="Analysis interface"
       >
         <div className="max-w-3xl mx-auto space-y-6">
+          {/* Progressive Loader for API phases */}
+          <ProgressiveLoader active={apiPhase === 'analyze' || apiPhase === 'answers'} label={apiPhase === 'answers' ? 'Submitting answers…' : 'Analyzing…'} />
           {/* Chat transcript */}
           <div className="space-y-4">
             {messages.map(m => (
@@ -427,6 +457,7 @@ export const ChatInterface = () => {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };

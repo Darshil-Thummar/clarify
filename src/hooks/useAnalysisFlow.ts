@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { AnalysisSession, UserInput, ClarifyingQuestion, AnalysisStage, NarrativeLoopStep, SpiessMapData, AnalysisSummary } from '@/types/analysis';
-import { analyze, getAuthToken, submitAnswers } from '@/lib/api';
+import { analyze, getAuthToken, submitAnswers, getSessionDetail, getSessionMessages } from '@/lib/api';
 
 export const useAnalysisFlow = () => {
   const [session, setSession] = useState<AnalysisSession>({
@@ -389,6 +389,35 @@ export const useAnalysisFlow = () => {
     deleteSession();
   }, [deleteSession]);
 
+  // Load an existing server session and its history
+  const loadServerSession = useCallback(async (serverId: string) => {
+    // Fetch session detail and messages in parallel
+    const [detail, history] = await Promise.all([
+      getSessionDetail(serverId),
+      getSessionMessages(serverId),
+    ]);
+
+    // Map messages to UI-friendly shape; ChatInterface will add ids/types
+    const mapped = (history.messages || []).map(m => ({
+      id: m._id,
+      type: m.sender === 'human' ? 'user' : m.sender === 'openai' ? 'ai' : 'system',
+      content: m.message || '',
+      timestamp: new Date(m.createdAt),
+    }));
+
+    // Update local session meta based on server state
+    const rawInput = detail?.session?.input || '';
+    setSession(prev => ({
+      ...prev,
+      id: serverId,
+      serverSessionId: serverId,
+      userInput: { rawInput },
+      // Do not change stage here; UI renders history + cards based on messages
+    }));
+
+    return { messages: mapped } as const;
+  }, []);
+
   return {
     session,
     isProcessing,
@@ -398,5 +427,6 @@ export const useAnalysisFlow = () => {
     updateSettings,
     deleteSession,
     startNewAnalysis,
+    loadServerSession,
   };
 };
