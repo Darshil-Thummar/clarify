@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Mic, Paperclip } from "lucide-react";
+import { Send, Mic, Paperclip, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
@@ -75,10 +75,15 @@ export const ChatInput = ({ onSendMessage, disabled, placeholder = "Describe a s
         className={cn(
           "h-12 w-12 p-0 bg-gradient-primary hover:opacity-90",
           "transition-all duration-200 hover:scale-105 active:scale-95",
-          "shadow-soft hover:shadow-medium"
+          "shadow-soft hover:shadow-medium",
+          disabled && "opacity-50 cursor-not-allowed"
         )}
       >
-        <Send className="h-4 w-4" />
+        {disabled ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Send className="h-4 w-4" />
+        )}
       </Button>
     </form>
   );

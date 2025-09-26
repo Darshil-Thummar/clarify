@@ -16,6 +16,7 @@ export const useAnalysisFlow = () => {
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [apiPhase, setApiPhase] = useState<string | null>(null);
 
   // Helper function to check if input needs clarification
   const needsClarification = useCallback((input: UserInput): ClarifyingQuestion[] => {
@@ -160,6 +161,7 @@ export const useAnalysisFlow = () => {
   // Process initial user input
   const processUserInput = useCallback(async (rawInput: string) => {
     setIsProcessing(true);
+    setApiPhase('analyze');
 
     // Always store raw input immediately
     const baseInput: UserInput = { rawInput };
@@ -193,6 +195,7 @@ export const useAnalysisFlow = () => {
       }));
 
       setIsProcessing(false);
+      setApiPhase(null);
 
       if (!response.needsAnswers) {
         // Continue with local pipeline using existing mock logic
@@ -219,6 +222,7 @@ export const useAnalysisFlow = () => {
       }));
 
       setIsProcessing(false);
+      setApiPhase(null);
 
       if (questions.length === 0) {
         setTimeout(() => processNarrativeLoop(extractedInput), 1000);
@@ -229,6 +233,7 @@ export const useAnalysisFlow = () => {
   // Process clarifying question answers
   const processClarifyingAnswers = useCallback(async (answers: Record<string, string>) => {
     setIsProcessing(true);
+    setApiPhase('answers');
     
     // Merge answers into user input
     const updatedInput: UserInput = { ...session.userInput };
@@ -327,6 +332,7 @@ export const useAnalysisFlow = () => {
             }
 
             setIsProcessing(false);
+            setApiPhase(null);
             return;
           }
         } catch (error) {
@@ -344,6 +350,7 @@ export const useAnalysisFlow = () => {
     }));
 
     setIsProcessing(false);
+    setApiPhase(null);
 
     // Proceed to narrative loop analysis
     setTimeout(() => processNarrativeLoop(updatedInput), 1000);
@@ -421,6 +428,7 @@ export const useAnalysisFlow = () => {
   return {
     session,
     isProcessing,
+    apiPhase,
     processUserInput,
     processClarifyingAnswers,
     skipClarifyingQuestions,

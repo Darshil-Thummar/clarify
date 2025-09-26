@@ -4,6 +4,7 @@ import { ChatInput } from "./ChatInput";
 import { TypingIndicator } from "./TypingIndicator";
 import { SessionSidebar } from "./SessionSidebar";
 import { ProgressiveLoader } from "../ui/progressive-loader";
+import { AIAnalysisLoader } from "../ui/ai-analysis-loader";
 import { WelcomeCard } from "./WelcomeCard";
 import { NarrativeLoopCard } from "../analysis/NarrativeLoopCard";
 import { SpiessMapCard } from "../analysis/SpiessMapCard";
@@ -178,7 +179,7 @@ export const ChatInterface = () => {
       case 'input':
         if (messages.length > 0 || isAnalyzing) return null;
         return <WelcomeCard onQuickStart={handleSendMessage} />;
-      
+
       case 'clarifying':
         return (
           <ClarifyingQuestions
@@ -187,7 +188,7 @@ export const ChatInterface = () => {
             onSkip={handleSkipQuestions}
           />
         );
-      
+
       case 'narrative-loop':
       case 'spiess-map':
       case 'summary':
@@ -203,45 +204,45 @@ export const ChatInterface = () => {
                 }}
               />
             )}
-            
+
             {session.stage !== 'narrative-loop' && session.narrativeLoop && (
               <NarrativeLoopCard data={session.narrativeLoop} />
             )}
-            
+
             {session.stage === 'narrative-loop' && isProcessing && (
               <TypingIndicator message="Extracting your narrative loop pattern..." />
             )}
-            
+
             {session.stage === 'narrative-loop' && !isProcessing && session.narrativeLoop && (
               <NarrativeLoopCard data={session.narrativeLoop} />
             )}
-            
+
             {session.stage !== 'spiess-map' && session.spiessMap && (
               <SpiessMapCard data={session.spiessMap} />
             )}
-            
+
             {session.stage === 'spiess-map' && isProcessing && (
               <TypingIndicator message="Building your SPIESS psychological map..." />
             )}
-            
+
             {session.stage === 'spiess-map' && !isProcessing && session.spiessMap && (
               <SpiessMapCard data={session.spiessMap} />
             )}
-            
+
             {session.stage !== 'summary' && session.summary && (
               <SummaryCard data={session.summary} />
             )}
-            
+
             {session.stage === 'summary' && isProcessing && (
               <TypingIndicator message="Generating your analysis summary..." />
             )}
-            
+
             {session.stage === 'summary' && !isProcessing && session.summary && (
               <SummaryCard data={session.summary} />
             )}
           </div>
         );
-      
+
       case 'complete':
         return (
           <div className="space-y-6">
@@ -258,7 +259,7 @@ export const ChatInterface = () => {
             {session.narrativeLoop && <NarrativeLoopCard data={session.narrativeLoop} />}
             {session.spiessMap && <SpiessMapCard data={session.spiessMap} />}
             {session.summary && <SummaryCard data={session.summary} />}
-            
+
             {/* Answers Review Button */}
             {session.clarifyingQuestions.length > 0 && (
               <div className="flex justify-center">
@@ -270,7 +271,7 @@ export const ChatInterface = () => {
                 </Button>
               </div>
             )}
-            
+
             <PrivacyControls
               settings={session.settings}
               onSettingsChange={handleSettingsChange}
@@ -279,7 +280,7 @@ export const ChatInterface = () => {
             />
           </div>
         );
-      
+
       default:
         return null;
     }
@@ -288,21 +289,21 @@ export const ChatInterface = () => {
   return (
     <div className="flex h-screen bg-gradient-background">
       {/* Sidebar (only for logged-in users) */}
-      {token && (
-        <aside className="w-80 border-r bg-card/50 backdrop-blur-sm"> 
-          <SessionSidebar 
-            onSelectSession={async (id) => {
-              const result = await loadServerSession(id);
-              setMessages(result.messages);
-            }}
-          />
-        </aside>
-      )}
+      {/*{token && (*/}
+      {/*  <aside className="w-80 border-r bg-card/50 backdrop-blur-sm"> */}
+      {/*    <SessionSidebar */}
+      {/*      onSelectSession={async (id) => {*/}
+      {/*        const result = await loadServerSession(id);*/}
+      {/*        setMessages(result.messages);*/}
+      {/*      }}*/}
+      {/*    />*/}
+      {/*  </aside>*/}
+      {/*)}*/}
 
       {/* Main column */}
       <div className="flex flex-col flex-1">
       {/* Header */}
-      <header 
+      <header
         className="bg-card border-b shadow-soft px-6 py-4 flex justify-between items-center"
         role="banner"
       >
@@ -358,8 +359,8 @@ export const ChatInterface = () => {
           )}
           <Dialog>
             <DialogTrigger asChild>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 aria-label="Privacy and settings"
               >
@@ -377,10 +378,10 @@ export const ChatInterface = () => {
               />
             </DialogContent>
           </Dialog>
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
+
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={startNewAnalysis}
             aria-label="Start new analysis session"
           >
@@ -390,15 +391,19 @@ export const ChatInterface = () => {
       </header>
 
       {/* Main Content */}
-      <main 
+      <main
         className="flex-1 overflow-y-auto px-4 py-6"
         role="main"
         aria-live="polite"
         aria-label="Analysis interface"
       >
         <div className="max-w-3xl mx-auto space-y-6">
-          {/* Progressive Loader for API phases */}
-          <ProgressiveLoader active={apiPhase === 'analyze' || apiPhase === 'answers'} label={apiPhase === 'answers' ? 'Submitting answers…' : 'Analyzing…'} />
+          {/* AI Analysis Loader */}
+          <AIAnalysisLoader 
+            active={apiPhase === 'analyze' || apiPhase === 'answers'} 
+            currentStage={apiPhase === 'answers' ? 'answers' : 'analyze'}
+            showStages={false}
+          />
           {/* Chat transcript */}
           <div className="space-y-4">
             {messages.map(m => (
@@ -417,11 +422,11 @@ export const ChatInterface = () => {
       {/* Input Area - always available */}
       <div className="border-t bg-card shadow-soft" role="complementary">
         <div className="max-w-3xl mx-auto px-4 py-4">
-          <ChatInput 
-            onSendMessage={handleSendMessage} 
+          <ChatInput
+            onSendMessage={handleSendMessage}
             disabled={isProcessing}
             placeholder={
-              session.stage === 'clarifying' 
+              session.stage === 'clarifying'
                 ? "You can also start a new topic here..."
                 : "Describe a recurring pattern or situation you'd like to analyze..."
             }
@@ -451,9 +456,9 @@ export const ChatInterface = () => {
           <DialogHeader>
             <DialogTitle>Answers Review</DialogTitle>
           </DialogHeader>
-          <AnswersReview 
-            session={session} 
-            onClose={() => setShowAnswersReview(false)} 
+          <AnswersReview
+            session={session}
+            onClose={() => setShowAnswersReview(false)}
           />
         </DialogContent>
       </Dialog>
