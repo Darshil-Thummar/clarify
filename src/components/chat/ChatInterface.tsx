@@ -7,6 +7,7 @@ import { NarrativeLoopCard } from "../analysis/NarrativeLoopCard";
 import { SpiessMapCard } from "../analysis/SpiessMapCard";
 import { SummaryCard } from "../analysis/SummaryCard";
 import { ClarifyingQuestions } from "../analysis/ClarifyingQuestions";
+import { AnswersReview } from "../analysis/AnswersReview";
 import { PrivacyControls } from "../settings/PrivacyControls";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -58,6 +59,7 @@ export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiRespondedForTurn, setAiRespondedForTurn] = useState(false);
+  const [showAnswersReview, setShowAnswersReview] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -243,6 +245,18 @@ export const ChatInterface = () => {
             {session.spiessMap && <SpiessMapCard data={session.spiessMap} />}
             {session.summary && <SummaryCard data={session.summary} />}
             
+            {/* Answers Review Button */}
+            {session.clarifyingQuestions.length > 0 && (
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setShowAnswersReview(true)}
+                  className="bg-gradient-primary text-white hover:bg-gradient-primary/90"
+                >
+                  Review & Export Answers
+                </Button>
+              </div>
+            )}
+            
             <PrivacyControls
               settings={session.settings}
               onSettingsChange={handleSettingsChange}
@@ -398,6 +412,19 @@ export const ChatInterface = () => {
             <Button variant="secondary" onClick={() => { setShowOnboarding(false); navigate("/login"); }}>Login</Button>
             <Button onClick={() => { setShowOnboarding(false); navigate("/register"); }}>Register</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Answers Review Modal */}
+      <Dialog open={showAnswersReview} onOpenChange={setShowAnswersReview}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Answers Review</DialogTitle>
+          </DialogHeader>
+          <AnswersReview 
+            session={session} 
+            onClose={() => setShowAnswersReview(false)} 
+          />
         </DialogContent>
       </Dialog>
     </div>

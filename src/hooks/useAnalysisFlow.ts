@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { AnalysisSession, UserInput, ClarifyingQuestion, AnalysisStage, NarrativeLoopStep, SpiessMapData, AnalysisSummary } from '@/types/analysis';
-import { analyze, getAuthToken } from '@/lib/api';
+import { analyze, getAuthToken, submitAnswers } from '@/lib/api';
 
 export const useAnalysisFlow = () => {
   const [session, setSession] = useState<AnalysisSession>({
@@ -242,6 +242,101 @@ export const useAnalysisFlow = () => {
       }
     });
 
+    // If we have a backend session, submit answers and use API response
+    if (session.serverSessionId) {
+      const orderedAnswers = session.clarifyingQuestions
+        .map(q => answers[q.id])
+        .filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
+
+      if (orderedAnswers.length > 0) {
+        try {
+          // Keep processing state true during API call
+          const response = await submitAnswers({ 
+            sessionId: session.serverSessionId, 
+            answers: orderedAnswers 
+          });
+
+          // Map API response to session structure
+          if (response.narrativeLoop) {
+            const apiNarrativeLoop = response.narrativeLoop as any;
+            const narrativeLoop: NarrativeLoopStep = {
+              trigger: apiNarrativeLoop.trigger || '',
+              reaction: apiNarrativeLoop.fear || '',
+              consequence: apiNarrativeLoop.outcome || '',
+              interpretation: apiNarrativeLoop.hiddenLogic || '',
+              emotion: apiNarrativeLoop.emotion || '',
+              behavior: apiNarrativeLoop.breakingActions?.join(', ') || '',
+              whyItFeelsReal: apiNarrativeLoop.whyItFeelsReal || '',
+              hiddenLogic: apiNarrativeLoop.hiddenLogic || '',
+              breakingPoints: apiNarrativeLoop.breakingActions || []
+            };
+
+            setSession(prev => ({
+              ...prev,
+              userInput: updatedInput,
+              narrativeLoop,
+              stage: 'spiess-map',
+            }));
+
+            // Process SPIESS map if available
+            if (response.spiessMap) {
+              const apiSpiessMap = response.spiessMap as any;
+              const spiessMap: SpiessMapData = {
+                sensations: apiSpiessMap.sensations || [],
+                patterns: apiSpiessMap.mechanisms || [],
+                interpretations: [apiSpiessMap.confirmationBias || ''],
+                emotions: apiSpiessMap.emotions || [],
+                stories: [apiSpiessMap.confirmationBias || ''],
+                solutions: apiSpiessMap.toolAction?.steps || [],
+                needs: 'security', // Default, could be mapped from API
+                microTest: {
+                  description: apiSpiessMap.microTest?.description || '',
+                  timeframe: apiSpiessMap.microTest?.timeframe || '',
+                  successCriteria: apiSpiessMap.microTest?.successCriteria || ''
+                },
+                toolAction: {
+                  name: apiSpiessMap.toolAction?.protocol || '',
+                  steps: apiSpiessMap.toolAction?.steps || [],
+                  duration: 'Ongoing'
+                }
+              };
+
+              setSession(prev => ({
+                ...prev,
+                spiessMap,
+                stage: 'summary',
+              }));
+
+              // Process summary if available
+              if (response.summary) {
+                const apiSummary = response.summary as any;
+                const summary: AnalysisSummary = {
+                  keyInsight: apiSummary.content || '',
+                  mechanism: apiSummary.mechanisms?.join(', ') || '',
+                  breakingPoints: apiSummary.mechanisms || [],
+                  nextStep: apiSummary.nextStep || '',
+                  wordCount: (apiSummary.content || '').split(' ').length
+                };
+
+                setSession(prev => ({
+                  ...prev,
+                  summary,
+                  stage: 'complete',
+                }));
+              }
+            }
+
+            setIsProcessing(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to submit answers:', error);
+          // Fall through to local flow
+        }
+      }
+    }
+
+    // Fallback to local flow
     setSession(prev => ({
       ...prev,
       userInput: updatedInput,
@@ -252,7 +347,7 @@ export const useAnalysisFlow = () => {
 
     // Proceed to narrative loop analysis
     setTimeout(() => processNarrativeLoop(updatedInput), 1000);
-  }, [session.userInput, session.clarifyingQuestions]);
+  }, [session.userInput, session.clarifyingQuestions, session.serverSessionId]);
 
   // Skip clarifying questions
   const skipClarifyingQuestions = useCallback(() => {

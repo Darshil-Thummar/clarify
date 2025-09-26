@@ -98,10 +98,10 @@ export const SpiessMapCard = ({ data }: SpiessMapCardProps) => {
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         {/* Visual Network */}
         <div className="relative">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map((category, index) => {
               const Icon = category.icon;
               const isSelected = selectedCategory === category.key;
@@ -110,32 +110,50 @@ export const SpiessMapCard = ({ data }: SpiessMapCardProps) => {
                 <div
                   key={category.key}
                   className={cn(
-                    "relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200",
-                    "hover:scale-105 hover:shadow-medium",
+                    "relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300",
+                    "hover:scale-[1.02] hover:shadow-lg hover:-translate-y-1",
                     category.bgColor,
                     category.borderColor,
-                    isSelected && "ring-2 ring-primary/30 scale-105"
+                    isSelected && "ring-2 ring-primary/40 scale-[1.02] shadow-lg -translate-y-1"
                   )}
                   onClick={() => setSelectedCategory(isSelected ? null : category.key)}
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <Icon className={cn("h-5 w-5", category.color)} />
-                    <h4 className={cn("font-medium", category.color)}>{category.label}</h4>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={cn(
+                      "w-10 h-10 rounded-lg flex items-center justify-center",
+                      category.bgColor,
+                      "border border-current/20"
+                    )}>
+                      <Icon className={cn("h-5 w-5", category.color)} />
+                    </div>
+                    <div>
+                      <h4 className={cn("font-semibold text-base", category.color)}>{category.label}</h4>
+                      <p className="text-xs text-muted-foreground">{category.items.length} items</p>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    {category.items.slice(0, 2).map((item, itemIndex) => (
-                      <Badge
+                  <div className="space-y-2">
+                    {category.items.slice(0, 3).map((item, itemIndex) => (
+                      <div
                         key={itemIndex}
-                        variant="secondary"
-                        className="text-xs mr-1 mb-1"
+                        className="flex items-center gap-2 p-2 bg-card/50 rounded-md border border-current/10"
                       >
-                        {item}
-                      </Badge>
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          category.color.replace('text-', 'bg-')
+                        )} />
+                        <span className="text-xs text-foreground truncate">{item}</span>
+                      </div>
                     ))}
-                    {category.items.length > 2 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{category.items.length - 2} more
-                      </Badge>
+                    {category.items.length > 3 && (
+                      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          category.color.replace('text-', 'bg-')
+                        )} />
+                        <span className="text-xs text-muted-foreground">
+                          +{category.items.length - 3} more items
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -155,33 +173,39 @@ export const SpiessMapCard = ({ data }: SpiessMapCardProps) => {
                   <div
                     key={category.key}
                     className={cn(
-                      "p-6 rounded-lg border",
+                      "p-8 rounded-xl border-2 shadow-lg",
                       category.bgColor,
                       category.borderColor
                     )}
                   >
-                    <div className="flex items-center gap-3 mb-4">
-                      <Icon className={cn("h-6 w-6", category.color)} />
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className={cn(
+                        "w-12 h-12 rounded-xl flex items-center justify-center",
+                        category.bgColor,
+                        "border border-current/20 shadow-md"
+                      )}>
+                        <Icon className={cn("h-6 w-6", category.color)} />
+                      </div>
                       <div>
-                        <h4 className={cn("text-lg font-semibold", category.color)}>
+                        <h4 className={cn("text-xl font-bold", category.color)}>
                           {category.label}
                         </h4>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {category.description}
                         </p>
                       </div>
                     </div>
-                    <div className="grid gap-3">
+                    <div className="grid gap-4">
                       {category.items.map((item, index) => (
                         <div
                           key={index}
-                          className="flex items-center gap-3 p-3 bg-card rounded-lg shadow-soft"
+                          className="flex items-center gap-4 p-4 bg-card/80 rounded-lg shadow-sm border border-current/10 hover:shadow-md transition-shadow"
                         >
                           <div className={cn(
-                            "w-2 h-2 rounded-full",
+                            "w-3 h-3 rounded-full flex-shrink-0",
                             category.color.replace('text-', 'bg-')
                           )} />
-                          <span className="text-sm text-foreground">{item}</span>
+                          <span className="text-sm text-foreground font-medium">{item}</span>
                         </div>
                       ))}
                     </div>

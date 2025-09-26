@@ -72,40 +72,42 @@ export const NarrativeLoopCard = ({ data }: NarrativeLoopCardProps) => {
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="grid gap-3">
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
           {steps.map((step, index) => (
             <div key={step.key} className="group">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-3 flex-1">
-                  <Badge variant="outline" className={cn("text-xs font-medium", step.color)}>
+              <div className="flex items-start gap-4">
+                <div className="flex items-center gap-4 flex-1">
+                  <Badge variant="outline" className={cn("text-xs font-medium min-w-[24px] h-6 flex items-center justify-center", step.color)}>
                     {index + 1}
                   </Badge>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-foreground">{step.label}</h4>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-foreground text-base">{step.label}</h4>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                         onClick={() => setExpandedStep(expandedStep === index ? null : index)}
                       >
                         <ChevronDown className={cn(
-                          "h-3 w-3 transition-transform",
+                          "h-4 w-4 transition-transform",
                           expandedStep === index && "transform rotate-180"
                         )} />
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{step.value}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed pr-8">{step.value}</p>
                     {expandedStep === index && (
-                      <div className="mt-3 p-3 bg-muted/30 rounded-lg animate-fade-in">
-                        <p className="text-sm text-muted-foreground">{step.description}</p>
+                      <div className="mt-4 p-4 bg-muted/30 rounded-lg animate-fade-in border border-muted/50">
+                        <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
                       </div>
                     )}
                   </div>
                 </div>
                 {index < steps.length - 1 && (
-                  <ArrowRight className="h-4 w-4 text-muted-foreground/50" />
+                  <div className="flex flex-col items-center justify-center pt-6">
+                    <ArrowRight className="h-5 w-5 text-muted-foreground/50" />
+                  </div>
                 )}
               </div>
             </div>

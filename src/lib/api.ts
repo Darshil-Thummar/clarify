@@ -156,3 +156,24 @@ export async function analyze(payload: AnalyzeRequest): Promise<AnalyzeResponse>
 }
 
 
+
+// Submit clarifying answers endpoint
+export interface SubmitAnswersRequest {
+    sessionId: string;
+    answers: string[];
+}
+
+// Shape may evolve; keep broad typing while preserving known fields
+export interface SubmitAnswersResponse {
+    success: boolean;
+    sessionId: string;
+    stage?: string;
+    narrativeLoop?: unknown;
+    spiessMap?: unknown;
+    summary?: unknown;
+    tags?: string[];
+}
+
+export async function submitAnswers(payload: SubmitAnswersRequest): Promise<SubmitAnswersResponse> {
+    return await apiRequest<SubmitAnswersResponse>('POST', "/v1/answers", payload);
+}
